@@ -13,7 +13,19 @@ pip install django
 pip install djangorestframework
 
 # Set up a new project with a single application
-django-admin startproject tutorial .  # Note the trailing '.' character
+django-admin startproject P10 .  # Note the trailing '.' character
 cd tutorial
-django-admin startapp quickstart
+django-admin startapp SoftDesk
 cd ..
+
+# Make migrations
+python3 manage.py makemigrations
+
+# Create SuperUser
+python3 manage.py createsuperuser
+
+# Migrate
+python3 manage.py migrate
+
+# Run Server
+python3 manage.py runserver
