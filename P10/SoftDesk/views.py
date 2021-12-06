@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
-class HelloView(APIView):
+
+class SignupView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -13,3 +14,17 @@ class HelloView(APIView):
         return Response(content)
 
 
+class LoginView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
+
+
+class ProjectsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
