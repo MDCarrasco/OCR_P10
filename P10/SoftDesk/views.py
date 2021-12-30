@@ -1,27 +1,13 @@
 from rest_framework.generics import get_object_or_404
 
-from P10.SoftDesk.serializers import ProjectSerializer, IssueSerializer, CommentSerializer
-from P10.SoftDesk.models import Project, Issue, Comment
+from P10.SoftDesk.serializers import (
+    ProjectSerializer, IssueSerializer, CommentSerializer, ContributorSerializer
+)
+from P10.SoftDesk.models import Project, Contributor, Issue, Comment
 
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-
-class SignupView(APIView):
-
-    def post(self, request):
-        content = {'message': 'Hello, World!'}
-        return Response(content)
-
-
-class LoginView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        content = {'message': 'Hello, World!'}
-        return Response(content)
 
 
 class ProjectViewSet(viewsets.ViewSet):
@@ -37,6 +23,22 @@ class ProjectViewSet(viewsets.ViewSet):
         queryset = Project.objects.filter()
         project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectSerializer(project)
+        return Response(serializer.data)
+
+
+class UserViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ContributorSerializer
+
+    def list(self, request, project_pk=None):
+        queryset = Contributor.objects.filter(project=project_pk)
+        serializer = ContributorSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, project_pk=None):
+        queryset = Contributor.objects.filter(pk=pk, project=project_pk)
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = IssueSerializer(user)
         return Response(serializer.data)
 
 
@@ -64,6 +66,9 @@ class CommentViewSet(viewsets.ViewSet):
         queryset = Comment.objects.filter(issue__project=project_pk, issue=issue_pk)
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request):
+        pass
 
     def retrieve(self, request, pk=None, project_pk=None, issue_pk=None):
         queryset = Comment.objects.filter(pk=pk, issue=issue_pk, issue__project=project_pk)

@@ -13,11 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from P10.SoftDesk import views
+from P10.SoftDesk.auth import views as auth_views
+
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_nested import routers
 from rest_framework_simplejwt import views as jwt_views
-from P10.SoftDesk import views
 
 router = routers.DefaultRouter()
 router.register(r'projects', views.ProjectViewSet, basename='projects')
@@ -27,9 +29,12 @@ router.register(r'projects', views.ProjectViewSet, basename='projects')
 
 project_router = routers.NestedSimpleRouter(router, r'projects', lookup='project')
 project_router.register(r'issues', views.IssueViewSet, basename='issues')
+project_router.register(r'users', views.UserViewSet, basename='users')
 ## generates:
 # /projects/{project_pk}/issues/
 # /projects/{project_pk}/issues/{pk}/
+# /projects/{project_pk}/users/
+# /projects/{project_pk}/users/{pk}/
 
 issue_router = routers.NestedSimpleRouter(project_router, r'issues', lookup='issue')
 issue_router.register(r'comments', views.CommentViewSet, basename='comments')
@@ -39,10 +44,9 @@ issue_router.register(r'comments', views.CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
-    path('signup/', views.SignupView.as_view(), name='signup'),
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('signup/', auth_views.SignupView.as_view(), name='signup'),
+    path('login/', auth_views.SoftDeskObtainTokenPairView.as_view(), name='token_obtain_pair'),
+    path('login/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path(r'', include(router.urls)),
     path(r'', include(project_router.urls)),
     path(r'', include(issue_router.urls)),

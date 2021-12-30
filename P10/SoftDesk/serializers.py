@@ -8,6 +8,12 @@ class ProjectSerializer(HyperlinkedModelSerializer):
         fields = ...
 
 
+class ContributorSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = Issue
+        fields = ...
+
+
 class IssueSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Issue
