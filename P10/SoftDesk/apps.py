@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class SoftdeskConfig(AppConfig):
-    name = 'SoftDesk'
+class SoftDeskConfig(AppConfig):
+    name = 'P10.SoftDesk'

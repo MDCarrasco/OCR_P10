@@ -14,9 +14,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework_nested import routers
 from rest_framework_simplejwt import views as jwt_views
 from P10.SoftDesk import views
+
+router = routers.DefaultRouter()
+router.register(r'projects', views.ProjectViewSet, basename='projects')
+## generates:
+# /projects/
+# /projects/{pk}/
+
+project_router = routers.NestedSimpleRouter(router, r'projects', lookup='project')
+project_router.register(r'issues', views.IssueViewSet, basename='issues')
+## generates:
+# /projects/{project_pk}/issues/
+# /projects/{project_pk}/issues/{pk}/
+
+issue_router = routers.NestedSimpleRouter(project_router, r'issues', lookup='issue')
+issue_router.register(r'comments', views.CommentViewSet, basename='comments')
+## generates:
+# /projects/{project_pk}/issues/{issue_pk}/comments/
+# /projects/{project_pk}/issues/{issue_pk}/comments/{pk}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +43,7 @@ urlpatterns = [
     path('api/token/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('login/', views.LoginView.as_view(), name='login'),
-    path('projects/', views.ProjectsView.as_view(), name='projects'),
+    path(r'', include(router.urls)),
+    path(r'', include(project_router.urls)),
+    path(r'', include(issue_router.urls)),
 ]
