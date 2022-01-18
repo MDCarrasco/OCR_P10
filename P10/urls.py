@@ -21,7 +21,7 @@ from django.urls import path, include
 from rest_framework_nested import routers
 from rest_framework_simplejwt import views as jwt_views
 
-router = routers.DefaultRouter()
+router = routers.SimpleRouter()
 router.register(r'projects', views.ProjectViewSet, basename='projects')
 ## generates:
 # /projects/

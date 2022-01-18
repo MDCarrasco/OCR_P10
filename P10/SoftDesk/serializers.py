@@ -1,26 +1,27 @@
-from P10.SoftDesk.models import Project, Issue, Comment
+from P10.SoftDesk.models import Project, Contributor, Issue, Comment
+from rest_framework.serializers import ModelSerializer
 from rest_framework.serializers import HyperlinkedModelSerializer
 
 
-class ProjectSerializer(HyperlinkedModelSerializer):
+class ProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
-        fields = ...
+        fields = "__all__"
 
 
-class ContributorSerializer(HyperlinkedModelSerializer):
+class ContributorSerializer(ModelSerializer):
+    class Meta:
+        model = Contributor
+        fields = "__all__"
+
+
+class IssueSerializer(ModelSerializer):
     class Meta:
         model = Issue
-        fields = ...
-
-
-class IssueSerializer(HyperlinkedModelSerializer):
-    class Meta:
-        model = Issue
-        fields = ...
+        fields = ("id", "title", "tag", "priority", "status", "assignee")
 
 
 class CommentSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Comment
-        fields = ...
+        fields = ("id", "description")
