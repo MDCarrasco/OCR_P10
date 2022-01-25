@@ -29,7 +29,7 @@ router.register(r'projects', views.ProjectViewSet, basename='projects')
 
 project_router = routers.NestedSimpleRouter(router, r'projects', lookup='project')
 project_router.register(r'issues', views.IssueViewSet, basename='issues')
-project_router.register(r'users', views.UserViewSet, basename='users')
+project_router.register(r'users', views.ContributorViewSet, basename='users')
 ## generates:
 # /projects/{project_pk}/issues/
 # /projects/{project_pk}/issues/{pk}/
