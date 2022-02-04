@@ -7,6 +7,7 @@ from P10.SoftDesk.models import Project, Contributor, Issue, Comment
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -44,8 +45,32 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
+class IsProjectAuthor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        author = obj.project.author
+        print(f"checking project author ({author})")
+        if request.user == author:
+            return True
+        return False
+
+
+class IsProjectContributor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        contributors = Contributor.objects.filter(project=obj.project)
+        print(f"checking project contributors list({contributors})")
+        if request.user in contributors:
+            return True
+        return False
+
+
 class IssueViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, (IsProjectAuthor | IsProjectContributor), )
     serializer_class = IssueSerializer
 
     def get_queryset(self):

@@ -1,4 +1,5 @@
 from P10.SoftDesk.models import Project, Contributor, Issue, Comment
+from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from rest_framework.serializers import ModelSerializer
 from rest_framework.serializers import HyperlinkedModelSerializer
@@ -25,6 +26,12 @@ class ProjectSerializer(ModelSerializer):
 
 
 class IssueSerializer(ModelSerializer):
+    assignee = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_assignee(obj):
+        return getattr(obj, "assignee", obj.author.id)
+
     class Meta:
         model = Issue
         fields = ("id", "title", "tag", "priority", "status", "assignee")
