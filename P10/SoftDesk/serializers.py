@@ -26,15 +26,15 @@ class ProjectSerializer(ModelSerializer):
 
 
 class IssueSerializer(ModelSerializer):
-    assignee = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_assignee(obj):
-        return getattr(obj, "assignee", obj.author.id)
 
     class Meta:
         model = Issue
         fields = ("id", "title", "description", "tag", "priority", "status", "assignee")
+
+    def validate(self, data):
+        if 'assignee' not in data:
+            data['assignee'] = self.context["request"].user
+        return data
 
 
 class CommentSerializer(HyperlinkedModelSerializer):

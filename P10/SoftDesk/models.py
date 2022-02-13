@@ -54,7 +54,8 @@ class Issue(models.Model):
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='issue_assignee',
-        related_query_name='issue_assignee'
+        related_query_name='issue_assignee',
+        blank=True
     )
     create_time = models.DateTimeField(auto_now_add=True)
 
