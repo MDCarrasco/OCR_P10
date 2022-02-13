@@ -1,5 +1,3 @@
-from rest_framework.generics import get_object_or_404
-
 from P10.SoftDesk.serializers import (
     ProjectSerializer, IssueSerializer, CommentSerializer, ContributorSerializer
 )
@@ -33,48 +31,33 @@ class ContributorViewSet(viewsets.ModelViewSet):
         serializer.save(project=Project.objects.get(id=self.kwargs.get("project_pk")))
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ProjectSerializer
-    queryset = Project.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
-
-
 class IsProjectAuthor(permissions.BasePermission):
     def has_permission(self, request, view):
         return True
 
     def has_object_permission(self, request, view, obj):
-        author = obj.project.author
-        print(f"checking project author ({author})")
-        if request.user == author:
+        if request.method in permissions.SAFE_METHODS:
             return True
-        return False
+        return request.user == obj.author
 
 
-class IsProjectContributor(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return True
+class ProjectViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated, IsProjectAuthor, )
+    serializer_class = ProjectSerializer
 
-    def has_object_permission(self, request, view, obj):
-        contributors = Contributor.objects.filter(project=obj.project)
-        print(f"checking project contributors list({contributors})")
-        if request.user in contributors:
-            return True
-        return False
+    def get_queryset(self):
+        return (Project.objects.filter(project_contributors__user=self.request.user) | Project.objects.filter(author=self.request.user)).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class IssueViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated, (IsProjectAuthor | IsProjectContributor), )
+    permission_classes = (IsAuthenticated, IsProjectAuthor, )
     serializer_class = IssueSerializer
 
     def get_queryset(self):
-        return Issue.objects.filter(project_id=self.kwargs.get("project_pk"))
+        return (Issue.objects.filter(project_id=self.kwargs.get("project_pk"), project__project_contributors__user=self.request.user) | Issue.objects.filter(project_id=self.kwargs.get("project_pk"), project__author=self.request.user)).distinct()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -84,27 +67,19 @@ class IssueViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, project=Project.objects.get(id=self.kwargs.get("project_pk")))
 
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user, project=Project.objects.get(id=self.kwargs.get("project_pk")))
-
 
 class CommentViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsProjectAuthor, )
     serializer_class = CommentSerializer
 
+    def get_queryset(self):
+        return (Comment.objects.filter(issue=self.kwargs.get("issue_pk"), issue__project__project_contributors__user=self.request.user)
+        | Comment.objects.filter(issue=self.kwargs.get("issue_pk"), issue__project__author=self.request.user)).distinct()
+
     def list(self, request, *args, **kwargs):
-        queryset = Comment.objects.filter(issue__project=kwargs.get("project_pk"), issue=kwargs.get("issue_pk"))
+        queryset = self.get_queryset()
         serializer = CommentSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, *args, **kwargs):
-        queryset = Comment.objects.filter(id=kwargs.get("pk"), issue_id=kwargs.get("issue_pk"), issue__project_id=kwargs.get("project_pk"))
-        comment = get_object_or_404(queryset, id=kwargs.get("pk"))
-        serializer = CommentSerializer(comment)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, issue=Issue.objects.get(id=self.kwargs.get("issue_pk")))
-
-    def perform_update(self, serializer):
         serializer.save(author=self.request.user, issue=Issue.objects.get(id=self.kwargs.get("issue_pk")))
