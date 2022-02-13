@@ -34,7 +34,7 @@ class IssueSerializer(ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ("id", "title", "tag", "priority", "status", "assignee")
+        fields = ("id", "title", "description", "tag", "priority", "status", "assignee")
 
 
 class CommentSerializer(HyperlinkedModelSerializer):
